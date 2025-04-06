@@ -1,0 +1,53 @@
+---
+title: "Assignment 5 - Aaman Gafur"
+author: "Aaman Gafur"
+date: "2025-04-06"
+output: html_document
+---
+
+```{r}
+library(TTR)
+library(forecast)
+library(tseries)
+library(ggplot2)
+
+data <- read.csv("/Users/aamangafur/Downloads/Natural_Gas_Consumptions.csv", header = TRUE)
+data <- data[, -1]
+data$Date <- as.Date(paste(data$Years, data$Months, "1", sep = "-"), format = "%Y-%m-%d")
+head(data)
+
+data_ts <- ts(data$Amounts_.m3., start = c(min(data$Years)), frequency = 12)
+plot(data_ts)
+
+
+#ARIMA (Explain the Output)
+
+nsdiffs(data_ts)
+tsdisplay(data_ts)
+data_diff <- diff(data_ts, differences=1)
+tsdisplay(data_diff)
+ndiffs(data_diff)
+
+auto_data <- auto.arima(data_ts)
+auto_data
+attributes(auto_data)
+#The model for ARIMA is ARIMA(1,1,0)(0,1,1)[12] using "auto.arima()" function, capturing both trend and annual seasonality.
+
+#Run Residual Analysis 
+
+Acf(auto_data$residuals)
+Box.test(residuals(auto_data), lag=20, type="Ljung")
+plot.ts(residuals(auto_data))
+hist(auto_data$residuals)
+
+tsdiag(auto_data)
+
+#Perform and Plot the forecast for the next five periods
+
+plot(forecast(auto_data, h=5))
+print(forecast(auto_data, h=5))
+
+#Show the accuracy of your ARIMA model
+accuracy(auto_data)
+
+```
